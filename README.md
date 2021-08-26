@@ -83,14 +83,14 @@ shared(msg) actor class ICP721 {
     /// @notice Count NFTs tracked by this contract
     /// @return A count of valid NFTs tracked by this contract, where each one of
     ///  them has an assigned and queryable owner
-    function totalSupply() external view returns (uint256);
+    function totalSupply() external view returns (Nat);
 
     /// @notice Enumerate valid NFTs
     /// @dev Throws if `_index` >= `totalSupply()`.
     /// @param _index A counter less than `totalSupply()`
     /// @return The token identifier for the `_index`th NFT,
     ///  (sort order not specified)
-    function tokenByIndex(uint256 _index) external view returns (uint256);
+    function tokenByIndex(Nat _index) external view returns ( Nat);
 
     /// @notice Enumerate NFTs assigned to an owner
     /// @dev Throws if `_index` >= `balanceOf(_owner)` or if
@@ -99,5 +99,5 @@ shared(msg) actor class ICP721 {
     /// @param _index A counter less than `balanceOf(_owner)`
     /// @return The token identifier for the `_index`th NFT assigned to `_owner`,
     ///   (sort order not specified)
-    function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256);
+    function tokenOfOwnerByIndex(address _owner, Nat _index) external view returns (Nat);
 ```
