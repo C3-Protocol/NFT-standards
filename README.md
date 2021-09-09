@@ -117,3 +117,5 @@ shared(msg) actor class ICP721 {
 PS: The controller of the nft container can be set as a black hole id to achieve the purpose of decentralization.
 
 Please comment, submit PRs, collaborate with us to build this standard.
+
+we will launch an NFT on dfinity according to this standard soon
