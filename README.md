@@ -2,6 +2,11 @@
 Propose standards for dfinity NFT tokens
 
 ## ICP721 interface
+This token standard provides a ERC721 approach with extensions that can add additional functionality based on the purpose of the token, and is inspired by the ERC-20 token standard 
+
+The metadata of nft on ethereum is some data or URL links, I think nft's metadata on ICP can be another separate container, which can have its own unique functions, such as game characters, or other things.
+
+The following interface allows for the implementation of a standard API for NFTs within smart contracts. This standard provides basic functionality to track and transfer NFTs.
 
 ### MUST
 Every ICP-721 Token compliant contract must implement the ICP721 interfaces (subject to "caveats" below):
@@ -44,7 +49,7 @@ shared(msg) actor class ICP721 {
     /// @param _operator Address to add to the set of authorized operators
     /// @param _approved True if the operator is approved, false to revoke approval
     /// @return True if success, false otherwise
-    public share(msg) func setApprovalForAll( _operator: Principal, Bool _approved) : async Bool;
+    public share(msg) func setApprovalForAll( _operator: Principal, _approved: Bool) : async Bool;
 
     /// @notice Get the approved address for a single NFT
     /// @dev Throws if `_tokenId` is not a valid NFT.
@@ -65,7 +70,7 @@ shared(msg) actor class ICP721 {
 ```go
     /// @notice mint new NFT canister, 
     /// NFT is a matadat or url in ERC20, in dfinity, optional it can be a new canisterId,
-    /// and must save the NFT canisterId, the would be used to check in function generateNFTOwner to check msg.caller if exist in NFT CanisterId list
+    /// and must save the NFT canisterId, the would be used to check in function setNFTOwner to check msg.caller if exist in NFT CanisterId list
     /// @param up tp project logic
     /// @return True if mint success, false otherwise
     public share(msg) func mintNFT(……) : async ……;
@@ -83,14 +88,14 @@ shared(msg) actor class ICP721 {
     /// @notice Count NFTs tracked by this contract
     /// @return A count of valid NFTs tracked by this contract, where each one of
     ///  them has an assigned and queryable owner
-    function totalSupply() external view returns (Nat);
+    public query func  totalSupply() : async Nat;
 
     /// @notice Enumerate valid NFTs
     /// @dev Throws if `_index` >= `totalSupply()`.
     /// @param _index A counter less than `totalSupply()`
     /// @return The token identifier for the `_index`th NFT,
     ///  (sort order not specified)
-    function tokenByIndex(Nat _index) external view returns ( Nat);
+    public query func tokenByIndex(_index: Nat) : async Nat;
 
     /// @notice Enumerate NFTs assigned to an owner
     /// @dev Throws if `_index` >= `balanceOf(_owner)` or if
@@ -99,5 +104,16 @@ shared(msg) actor class ICP721 {
     /// @param _index A counter less than `balanceOf(_owner)`
     /// @return The token identifier for the `_index`th NFT assigned to `_owner`,
     ///   (sort order not specified)
-    function tokenOfOwnerByIndex(address _owner, Nat _index) external view returns (Nat);
+    public query func tokenOfOwnerByIndex(_owner: Principal, _index: Nat) : async Nat;
+
+    /// @notice set Nft owner to be Nft canister's controller
+    /// @dev Throws if caller is not contract owner 
+    /// @param _canisterId a canisterId that pointed by NFT 
+    /// @param _nftOwner nft's owner
+    /// @return return true if set success, otherwise false
+    public share(msg) func setController(_canisterId: Principal, _nftOwner: Principal) : async Bool;
 ```
+
+PS: The controller of the nft container can be set as a black hole id to achieve the purpose of decentralization.
+
+Please comment, submit PRs, collaborate with us to build this standard.
