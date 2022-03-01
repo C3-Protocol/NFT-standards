@@ -251,6 +251,11 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
         return true;
     };
 
+    /*
+    set NFT-Store canisterId, 
+    than web-front can call https_request to show your nft-photo/nft-video
+    if you have many store, nftStoreCID can be a Array
+    */
     public shared(msg) func setNftCanister(storeCIDArr: [Principal]) : async Bool {
         assert(msg.caller == owner_);
         nftStoreCID := storeCIDArr;
