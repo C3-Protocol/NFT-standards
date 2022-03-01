@@ -1,0 +1,33 @@
+{
+  "canisters": {
+    "NFT": {
+      "main": "src/factory/NFT.mo",
+      "type": "motoko"
+    },
+    "MetaData": {
+      "main": "src/data/nftMetaData.mo",
+      "type": "motoko"
+    },
+    "Storage": {
+      "main": "src/storage/storage.mo",
+      "type": "motoko"
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": ""
+    }
+  },
+  "dfx": "0.8.4",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    },
+    "dev": {
+      "bind": "127.0.0.1:8001",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}

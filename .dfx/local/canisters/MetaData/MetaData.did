@@ -1,0 +1,49 @@
+type StreamingStrategy = variant {
+                           Callback:
+                            record {
+                              callback:
+                               func (StreamingCallbackToken) ->
+                                (StreamingCallbackResponse) query;
+                              token: StreamingCallbackToken;
+                            };};
+type StreamingCallbackToken = 
+ record {
+   content_encoding: text;
+   index: nat;
+   key: text;
+   sha256: opt blob;
+ };
+type StreamingCallbackResponse = 
+ record {
+   body: blob;
+   token: opt StreamingCallbackToken;
+ };
+type NFTMetaData = 
+ service {
+   deleteImage: (nat) -> (bool);
+   getCycles: () -> (nat) query;
+   http_request: (HttpRequest) -> (HttpResponse) query;
+   setDataUser: (principal) -> (bool);
+   uploadImage: (nat, blob) -> (bool);
+   wallet_receive: () -> (nat);
+ };
+type HttpResponse = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   status_code: nat16;
+   streaming_strategy: opt StreamingStrategy;
+ };
+type HttpRequest = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   method: text;
+   url: text;
+ };
+type HeaderField = 
+ record {
+   text;
+   text;
+ };
+service : (principal) -> NFTMetaData

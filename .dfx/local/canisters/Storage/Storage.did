@@ -1,0 +1,69 @@
+type TokenIndex__1 = nat;
+type TokenIndex = nat;
+type Time = int;
+type Storage = 
+ service {
+   addBuyRecord: (TokenIndex__1, opt principal, opt principal, opt nat,
+    Time) -> ();
+   addRecord: (TokenIndex__1, Operation__1, opt principal, opt principal,
+    opt nat, Time) -> ();
+   addRecord2: (vec nat, principal) -> ();
+   addRecords: (vec AncestorMintRecord) -> ();
+   cancelFavorite: (principal, NFTStoreInfo) -> ();
+   getCycles: () -> (nat) query;
+   getFavorite: (principal) -> (vec NFTStoreInfo) query;
+   getHistory: (TokenIndex__1) -> (vec OpRecord) query;
+   getNftFavoriteNum: (TokenIndex__1) -> (nat) query;
+   getZombieNftCanisterId: () -> (principal) query;
+   isFavorite: (principal, NFTStoreInfo) -> (bool) query;
+   setFavorite: (principal, NFTStoreInfo) -> ();
+   setZombieNftCanisterId: (principal) -> (bool);
+   wallet_receive: () -> (nat);
+ };
+type Operation__1 = 
+ variant {
+   Bid;
+   CancelList;
+   List;
+   Mint;
+   Sale;
+   Transfer;
+   UpdateList;
+ };
+type Operation = 
+ variant {
+   Bid;
+   CancelList;
+   List;
+   Mint;
+   Sale;
+   Transfer;
+   UpdateList;
+ };
+type OpRecord__1 = 
+ record {
+   from: opt principal;
+   op: Operation;
+   price: opt nat;
+   timestamp: Time;
+   to: opt principal;
+ };
+type OpRecord = 
+ record {
+   from: opt principal;
+   op: Operation;
+   price: opt nat;
+   timestamp: Time;
+   to: opt principal;
+ };
+type NFTStoreInfo = 
+ record {
+   canisterId: principal;
+   index: TokenIndex;
+ };
+type AncestorMintRecord = 
+ record {
+   index: nat;
+   "record": OpRecord__1;
+ };
+service : (principal) -> Storage

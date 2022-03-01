@@ -1,0 +1,234 @@
+type TransferResponse = 
+ variant {
+   err:
+    variant {
+      ListOnMarketPlace;
+      NotAllowTransferToSelf;
+      NotOwnerOrNotApprove;
+      Other;
+    };
+   ok: TokenIndex;
+ };
+type TokenIndex__1 = nat;
+type TokenIndex = nat;
+type TokenDetails = 
+ record {
+   attr1: ComponentAttribute;
+   attr2: ComponentAttribute;
+   attr3: ComponentAttribute;
+   attr4: ComponentAttribute;
+   attr5: ComponentAttribute;
+   attr6: ComponentAttribute;
+   attr7: ComponentAttribute;
+   id: nat;
+ };
+type Time = int;
+type SoldListings = 
+ record {
+   account: nat;
+   lastPrice: nat;
+   time: Time;
+ };
+type PreMint = 
+ record {
+   index: nat;
+   user: principal;
+ };
+type NFTStoreInfo = 
+ record {
+   canisterId: principal;
+   index: TokenIndex;
+ };
+type NFTMetaData = 
+ record {
+   attr1: nat;
+   attr2: nat;
+   attr3: nat;
+   attr4: nat;
+   attr5: nat;
+   attr6: nat;
+   attr7: nat;
+   id: nat;
+ };
+type NFT = 
+ service {
+   approve: (principal, TokenIndex__1) -> (bool);
+   balanceOf: (principal) -> (nat) query;
+   batchTransferFrom: (principal, vec principal, vec TokenIndex__1) ->
+    (TransferResponse);
+   buyNow: (BuyRequest) -> (BuyResponse);
+   cancelFavorite: (TokenIndex__1) -> (bool);
+   cancelList: (TokenIndex__1) -> (ListResponse);
+   clearAirDrop: () -> (bool);
+   clearDisCount: () -> (bool);
+   cliamAirdrop: () -> (AirDropResponse);
+   deleteAirDrop: (principal) -> (bool);
+   getAirDropLeft: () -> (vec record {
+                                principal;
+                                nat;
+                              }) query;
+   getAirDropRemain: (principal) -> (nat) query;
+   getAll: () -> (vec record {
+                        TokenIndex__1;
+                        principal;
+                      }) query;
+   getAllHolder: (principal) -> (vec principal) query;
+   getAllNFT: (principal) -> (vec record {
+                                    TokenIndex__1;
+                                    principal;
+                                  }) query;
+   getAllNftCanister: () -> (vec principal);
+   getAllTokens: () -> (vec record {
+                              TokenIndex__1;
+                              NFTMetaData;
+                            });
+   getApproved: (TokenIndex__1) -> (opt principal) query;
+   getAvailableMint: () -> (vec record {
+                                  TokenIndex__1;
+                                  bool;
+                                }) query;
+   getComponentById: (TokenIndex__1) -> (opt Component) query;
+   getComponentsSize: () -> (nat) query;
+   getCycles: () -> (nat) query;
+   getDisCountByUser: (principal) -> (nat) query;
+   getDisCountLeft: () -> (vec record {
+                                 principal;
+                                 nat;
+                               }) query;
+   getListings: () -> (vec record {
+                             NFTStoreInfo;
+                             Listings;
+                           }) query;
+   getMintPrice: () -> (nat) query;
+   getSoldListings: () -> (vec record {
+                                 NFTStoreInfo;
+                                 SoldListings;
+                               }) query;
+   getStorageCanisterId: () -> (opt principal) query;
+   getTokenById: (nat) -> (GetTokenResponse) query;
+   getWICPCanisterId: () -> (principal) query;
+   isApprovedForAll: (principal, principal) -> (bool) query;
+   isList: (TokenIndex__1) -> (opt Listings) query;
+   list: (ListRequest) -> (ListResponse);
+   mint: (nat) -> (MintResponse);
+   newStorageCanister: (principal) -> (bool);
+   ownerOf: (TokenIndex__1) -> (opt principal) query;
+   preMint: (vec PreMint) -> (nat);
+   proAvailableMint: () -> (bool);
+   setApprovalForAll: (principal, bool) -> (bool);
+   setFavorite: (TokenIndex__1) -> (bool);
+   setMintPrice: (nat) -> (bool);
+   setNftCanister: (vec principal) -> (bool);
+   setOwner: (principal) -> (bool);
+   setStorageCanisterId: (opt principal) -> (bool);
+   setWICPCanisterId: (principal) -> (bool);
+   transferFrom: (principal, principal, TokenIndex__1) -> (TransferResponse);
+   updateList: (ListRequest) -> (ListResponse);
+   uploadAirDropList: (vec AirDropStruct) -> (bool);
+   uploadComponents: (vec Component) -> (bool);
+   uploadDisCountList: (vec DisCountStruct) -> (bool);
+   uploadNftMetaData: (vec NFTMetaData) -> (bool);
+   wallet_receive: () -> (nat);
+ };
+type MintResponse = 
+ variant {
+   err:
+    variant {
+      AllowedInsufficientBalance;
+      InsufficientBalance;
+      LessThanFee;
+      NotEnoughToMint;
+      NotOpen;
+      NotWhiteListOrMaximum;
+      Other;
+      SoldOut;
+      Unauthorized;
+    };
+   ok: vec CanvasIdentity;
+ };
+type Listings = 
+ record {
+   price: nat;
+   seller: principal;
+   time: Time;
+   tokenIndex: TokenIndex;
+ };
+type ListResponse = 
+ variant {
+   err:
+    variant {
+      AlreadyList;
+      NotApprove;
+      NotFoundIndex;
+      NotNFT;
+      NotOwner;
+      Other;
+      SamePrice;
+    };
+   ok: TokenIndex;
+ };
+type ListRequest = 
+ record {
+   price: nat;
+   tokenIndex: TokenIndex;
+ };
+type GetTokenResponse = 
+ variant {
+   err: variant {NotFoundIndex;};
+   ok: TokenDetails;
+ };
+type DisCountStruct = 
+ record {
+   disCount: nat;
+   user: principal;
+ };
+type ComponentAttribute = 
+ record {
+   attr_name: text;
+   attr_value: text;
+ };
+type Component = 
+ record {
+   attribute: ComponentAttribute;
+   id: nat;
+ };
+type CanvasIdentity = 
+ record {
+   canisterId: principal;
+   index: TokenIndex;
+ };
+type BuyResponse = 
+ variant {
+   err:
+    variant {
+      AllowedInsufficientBalance;
+      AlreadyTransferToOther;
+      InsufficientBalance;
+      LessThanFee;
+      NotAllowBuySelf;
+      NotFoundIndex;
+      Other;
+      Unauthorized;
+    };
+   ok: TokenIndex;
+ };
+type BuyRequest = 
+ record {
+   feeTo: principal;
+   marketFeeRatio: nat;
+   tokenIndex: TokenIndex;
+ };
+type AirDropStruct = 
+ record {
+   remainTimes: nat;
+   user: principal;
+ };
+type AirDropResponse = 
+ variant {
+   err: variant {
+          AlreadyCliam;
+          NotInAirDropListOrAlreadyCliam;
+        };
+   ok: CanvasIdentity;
+ };
+service : (principal, principal, principal, principal) -> NFT
