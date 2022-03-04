@@ -44,7 +44,7 @@ shared(msg) actor class NFT {
 
     public query func getListings() : async [(NFTStoreInfo, Listings)]
 
-    public shared query(msg) func getAll() : async [(TokenIndex, Principal)] 
+    public shared query(msg) func getAllNFT() : async [(TokenIndex, Principal)] 
 
     public shared(msg) func wallet_receive() : async Nat
 }
