@@ -58,15 +58,11 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
     type GetTokenResponse = NFTTypes.GetTokenResponse;
 
     private stable var owner: Principal = owner_;
-    private stable var cccMintfeeTo: Principal = cccMintfeeTo_;
     private stable var royaltyfeeTo: Principal = royaltyfeeto_;
     private stable var WICPCanisterActor: WICPActor = actor(Principal.toText(wicpCanisterId_));
 
-    private stable var mintPrice : Balance  = 200_000_000;
     private stable var cyclesCreateCanvas: Nat = Types.CREATECANVAS_CYCLES;
     private stable var supply : Balance  = 10000; //total supply accroding to your project
-    private stable var royaltyfeeRatio : Nat  = 25;  //royaltyfeeRatio
-    private stable var cccMintfeeRatio : Nat  = 5;  //royaltyfeeRatio
     private stable var nftStoreCID : [Principal] = [];  //store nft photo. if all nft photo too larget. can store in serval canister
     private stable var storageCanister : ?StorageActor = null; //store nft tx history
 
@@ -77,14 +73,6 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
     // all nft attribute to serial number for all Component
     private stable var tokensEntries : [(Nat, NFTMetaData)] = [];
     private var tokens = HashMap.HashMap<TokenIndex, NFTMetaData>(1, Types.TokenIndex.equal, Types.TokenIndex.hash);
-
-    //airdrop list if your project have
-    private stable var airDropEntries : [(Principal, Nat)] = [];
-    private var airDrop = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
-
-    //discount users
-    private stable var disCountEntries : [(Principal, Nat)] = [];
-    private var disCount = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
     
     //all listings
     private stable var listingsEntries : [(TokenIndex, Listings)] = [];
@@ -109,8 +97,7 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
     private var nftApprovals = HashMap.HashMap<TokenIndex, Principal>(1, Types.TokenIndex.equal, Types.TokenIndex.hash);
     // Mapping from owner to operator approvals
     private var operatorApprovals = HashMap.HashMap<Principal, HashMap.HashMap<Principal, Bool>>(1, Principal.equal, Principal.hash);
-    private stable var dataUser : Principal = Principal.fromText("umgol-annoi-q7dqt-qbsw6-a2pww-eitzs-6vi5t-efaz6-xquey-5jmut-sqe");
-
+   
     system func preupgrade() {
         componentsEntries := Iter.toArray(components.entries());
         tokensEntries := Iter.toArray(tokens.entries());
@@ -120,13 +107,9 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
         balancesEntries := Iter.toArray(balances.entries());
         ownersEntries := Iter.toArray(owners.entries());
         availableEntries := Iter.toArray(availableMint.entries());
-        airDropEntries := Iter.toArray(airDrop.entries());
-        disCountEntries := Iter.toArray(disCount.entries());
     };
 
     system func postupgrade() {
-        airDrop := HashMap.fromIter<Principal, Nat>(airDropEntries.vals(), 1, Principal.equal, Principal.hash);
-        disCount := HashMap.fromIter<Principal, Nat>(disCountEntries.vals(), 1, Principal.equal, Principal.hash);
         balances := HashMap.fromIter<Principal, Nat>(balancesEntries.vals(), 1, Principal.equal, Principal.hash);
         owners := HashMap.fromIter<TokenIndex, Principal>(ownersEntries.vals(), 1, Types.TokenIndex.equal, Types.TokenIndex.hash);
         availableMint := HashMap.fromIter<TokenIndex, Bool>(availableEntries.vals(), 1, Types.TokenIndex.equal, Types.TokenIndex.hash);
@@ -137,8 +120,6 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
 
         tokensEntries := [];
         componentsEntries := [];
-        airDropEntries := [];
-        disCountEntries := [];
         listingsEntries := [];
         soldListingsEntries := [];
         balancesEntries := [];
@@ -296,38 +277,6 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
         return arr[lotteryIndex].0;
     };
 
-    // airdrop accoring to your project
-    public shared(msg) func cliamAirdrop() : async AirDropResponse {
-        let remain = switch(airDrop.get(msg.caller)){
-            case (?a){a};
-            case _ {return #err(#NotInAirDropListOrAlreadyCliam);};
-        };
-        if(remain == 0){
-            return #err(#AlreadyCliam);
-        };
-        if(availableMint.size() == 0){
-            return #err(#AlreadyCliam);
-        };
-        let tokenIndex = randomNft(msg.caller);
-        owners.put(tokenIndex, msg.caller);
-        balances.put( msg.caller, _balanceOf(msg.caller) + 1 );
-        availableMint.delete(tokenIndex);
-        switch(storageCanister){
-            case(?s){ignore s.addRecord(tokenIndex, #Mint, null, ?msg.caller, null, Time.now());};
-            case _ {};
-        };
-        if(remain == 1){
-            airDrop.delete(msg.caller);
-        }else if (remain > 1){
-            airDrop.put(msg.caller,remain - 1);
-        };
-        let info: NFTStoreInfo = { 
-            index=tokenIndex; 
-            canisterId=nftStoreCID[0];
-        };
-        return #ok(info);
-    };
-
     //calculate the remain nft
     public shared(msg) func proAvailableMint() : async Bool {
         assert(msg.caller == owner);
@@ -342,70 +291,6 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
 
     public query func getAvailableMint() : async [(TokenIndex, Bool)] {
         Iter.toArray(availableMint.entries())
-    };
-
-    //upload airdrop whitelist
-    public shared(msg) func uploadAirDropList(airDropList: [AirDropStruct]) : async Bool {
-        assert(msg.caller == owner);
-        for(value in airDropList.vals()){
-            switch(airDrop.get(value.user)){
-                case (?n){
-                    airDrop.put(value.user, n + value.remainTimes);
-                };
-                case _ {airDrop.put(value.user, value.remainTimes);}
-            }
-        };
-        return true;
-    };
-
-    public shared(msg) func clearAirDrop() : async Bool {
-        assert(msg.caller == owner);
-        airDrop := HashMap.HashMap<Principal, Nat>(0, Principal.equal, Principal.hash);
-        return true;
-    };
-
-    public shared(msg) func deleteAirDrop(user: Principal) : async Bool {
-        assert(msg.caller == owner);
-        airDrop.delete(user);
-        return true;
-    };
-
-    public shared(msg) func uploadDisCountList(disCountList: [DisCountStruct]) : async Bool {
-        assert(msg.caller == owner);
-        for(value in disCountList.vals()){
-            disCount.put(value.user, value.disCount);
-        };
-        return true;
-    };
-
-    public shared(msg) func clearDisCount() : async Bool {
-        assert(msg.caller == owner);
-        disCount := HashMap.HashMap<Principal, Nat>(0, Principal.equal, Principal.hash);
-        return true;
-    };
-
-    //reserve nft index
-    public shared(msg) func preMint(preMintArr: [PreMint]) : async Nat {
-        assert(msg.caller == owner);
-        var records: [AncestorMintRecord] = [];
-        var totalMint = 0;
-        for(v in preMintArr.vals()){
-            if(Option.isNull(owners.get(v.index))){
-                let rec: AncestorMintRecord = {
-                    index = v.index;
-                    record = {op = #Mint; from = null; to = ?v.user; price = null; timestamp = Time.now();};
-                };
-                records := Array.append(records, [rec]);
-                owners.put(v.index, v.user);
-                availableMint.delete(v.index);
-                totalMint += 1;
-            };    
-        };
-        switch(storageCanister){
-            case(?s){ignore s.addRecords(records);};
-            case _ {};
-        };
-        return totalMint;
     };
 
     private func randomNfts(user: Principal, mintAmount: Nat) : [Nat] {
@@ -428,44 +313,15 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
         return ret;
     };
 
-    //public sell
+    //accroding to you project.
     public shared(msg) func mint(mintAmount: Nat) : async MintResponse {
         assert(mintAmount > 0);
+        
         if(availableMint.size() == 0){ return #err(#SoldOut); };
         if(mintAmount > availableMint.size()){ return #err(#NotEnoughToMint); };
-
-        let dis = switch(disCount.get(msg.caller)){
-            case (?d){d};
-            case _ {100};
-        };
         
         let tokenIndexArr = randomNfts(msg.caller, mintAmount);
         if(tokenIndexArr.size() == 0){ return #err(#SoldOut); };
-        let price = Nat.div(Nat.mul(mintPrice, dis), 100);
-        let totalPrice = price * tokenIndexArr.size();
-
-        var tos: [Principal] = [];
-        var values: [Nat] = [];
-
-        let mintFee:Nat = Nat.div(Nat.mul(totalPrice, cccMintfeeRatio), 100);
-        let value = totalPrice - mintFee;
-
-        tos := Array.append(tos, [cccMintfeeTo]);
-        tos := Array.append(tos, [royaltyfeeTo]);
-        
-        values := Array.append(values, [mintFee]);
-        values := Array.append(values, [value]);
-
-        let transferResult = await WICPCanisterActor.batchTransferFrom(msg.caller, tos, values);
-        switch(transferResult){
-            case(#ok(b)) {};
-            case(#err(errText)){
-                for(v in tokenIndexArr.vals()){
-                    availableMint.put(v, true);
-                };
-                return #err(errText);
-            };
-        };
 
         var records: [AncestorMintRecord] = [];
         var nftIdArr: [NFTStoreInfo] = [];
@@ -490,36 +346,7 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
             case _ {};
         };
 
-        disCount.delete(msg.caller);
         return #ok(nftIdArr);
-    };
-
-    public shared(msg) func setFavorite(tokenIndex: TokenIndex): async Bool {
-        switch(storageCanister){
-            case(?s){
-                let info: NFTStoreInfo = { 
-                    index=tokenIndex; 
-                    canisterId=nftStoreCID[0];
-                };
-                ignore s.setFavorite(msg.caller, info);
-            };
-            case _ {};
-        };
-        return true;
-    };
-
-    public shared(msg) func cancelFavorite(tokenIndex: TokenIndex): async Bool {
-        switch(storageCanister){
-            case(?s){
-                let info: NFTStoreInfo = { 
-                    index=tokenIndex; 
-                    canisterId=nftStoreCID[0];
-                };
-                ignore s.cancelFavorite(msg.caller, info);
-            };
-            case _ {};
-        };
-        return true;
     };
 
     //modify the PixelCanvas NFT to newOwner's map when oldOwner sell the NFT to another
@@ -671,30 +498,7 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
             return #err(#AlreadyTransferToOther);
         };
 
-        var tos: [Principal] = [];
-        var values: [Nat] = [];
-
-        let marketFee:Nat = Nat.div(Nat.mul(orderInfo.price, buyRequest.marketFeeRatio), 100);
-        let royaltyFee:Nat = Nat.div(Nat.mul(orderInfo.price, royaltyfeeRatio), 1000);
-        let value = orderInfo.price - marketFee - royaltyFee;
-
-        tos := Array.append(tos, [buyRequest.feeTo]);
-        tos := Array.append(tos, [royaltyfeeTo]);
-        tos := Array.append(tos, [orderInfo.seller]);
-        
-        values := Array.append(values, [marketFee]);
-        values := Array.append(values, [royaltyFee]);
-        values := Array.append(values, [value]);
-
         listings.delete(buyRequest.tokenIndex);
-        let transferResult = await WICPCanisterActor.batchTransferFrom(msg.caller, tos, values);
-        switch(transferResult){
-            case(#ok(b)) {};
-            case(#err(errText)){
-                listings.put(buyRequest.tokenIndex, orderInfo);
-                return #err(errText);
-            };
-        };
         
         _transfer(orderInfo.seller, msg.caller, orderInfo.tokenIndex);
         _addSoldListings(orderInfo);
@@ -703,18 +507,6 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
             case _ {};
         };
         return #ok(buyRequest.tokenIndex);
-    };
-
-    public shared(msg) func setWICPCanisterId(wicpCanisterId: Principal) : async Bool {
-        assert(msg.caller == owner);
-        WICPCanisterActor := actor(Principal.toText(wicpCanisterId));
-        return true;
-    };
-
-    public shared(msg) func setMintPrice(newPrice: Nat) : async Bool {
-        assert(msg.caller == owner);
-        mintPrice := newPrice;
-        return true;
     };
 
     public shared(msg) func setOwner(newOwner: Principal) : async Bool {
@@ -779,14 +571,6 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
         return Cycles.balance();
     };
 
-    public query func getMintPrice() : async Nat {
-        mintPrice
-    };
-
-    public query func getWICPCanisterId() : async Principal {
-        Principal.fromActor(WICPCanisterActor)
-    };
-
     public query func getAllNFT(user: Principal) : async [(TokenIndex, Principal)] {
         var ret: [(TokenIndex, Principal)] = [];
         for((k,v) in owners.entries()){
@@ -816,38 +600,12 @@ shared(msg)  actor class NFT (owner_: Principal, royaltyfeeto_: Principal,  cccM
         return ret;
     };
 
-    public query func getAirDropRemain(user: Principal) : async Nat {
-        switch(airDrop.get(user)){
-            case (?n){n};
-            case _ {0};
-        }
-    };
-
-    public shared query(msg) func getAirDropLeft() : async [(Principal, Nat)] {
-        assert(msg.caller == owner);
-        Iter.toArray(airDrop.entries())
-    };
-
-    public shared query(msg) func getDisCountLeft() : async [(Principal, Nat)] {
-        assert(msg.caller == owner);
-        Iter.toArray(disCount.entries())
-    };
-
-    public query func getDisCountByUser(user: Principal) : async Nat {
-        var dis:Nat = 100;
-        switch(disCount.get(user)){
-            case (?d){dis := d;};
-            case _ {};
-        };
-        dis
-    };
-
     private func _checkPrincipal(id: Principal) : Bool {
         Principal.toText(id).size() > 60
     };
 
     private func _checkUsr(usr: Principal) : Bool {
-        usr == owner or usr == dataUser
+        usr == owner
     };
 
     private func _balanceOf(owner: Principal): Nat {

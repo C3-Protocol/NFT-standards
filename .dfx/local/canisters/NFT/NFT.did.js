@@ -40,17 +40,6 @@ export const idlFactory = ({ IDL }) => {
       'AlreadyList' : IDL.Null,
     }),
   });
-  const CanvasIdentity = IDL.Record({
-    'index' : TokenIndex,
-    'canisterId' : IDL.Principal,
-  });
-  const AirDropResponse = IDL.Variant({
-    'ok' : CanvasIdentity,
-    'err' : IDL.Variant({
-      'AlreadyCliam' : IDL.Null,
-      'NotInAirDropListOrAlreadyCliam' : IDL.Null,
-    }),
-  });
   const NFTMetaData = IDL.Record({
     'id' : IDL.Nat,
     'attr1' : IDL.Nat,
@@ -103,6 +92,10 @@ export const idlFactory = ({ IDL }) => {
     'tokenIndex' : TokenIndex,
     'price' : IDL.Nat,
   });
+  const CanvasIdentity = IDL.Record({
+    'index' : TokenIndex,
+    'canisterId' : IDL.Principal,
+  });
   const MintResponse = IDL.Variant({
     'ok' : IDL.Vec(CanvasIdentity),
     'err' : IDL.Variant({
@@ -117,15 +110,6 @@ export const idlFactory = ({ IDL }) => {
       'AllowedInsufficientBalance' : IDL.Null,
     }),
   });
-  const PreMint = IDL.Record({ 'user' : IDL.Principal, 'index' : IDL.Nat });
-  const AirDropStruct = IDL.Record({
-    'user' : IDL.Principal,
-    'remainTimes' : IDL.Nat,
-  });
-  const DisCountStruct = IDL.Record({
-    'disCount' : IDL.Nat,
-    'user' : IDL.Principal,
-  });
   const NFT = IDL.Service({
     'approve' : IDL.Func([IDL.Principal, TokenIndex__1], [IDL.Bool], []),
     'balanceOf' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
@@ -135,18 +119,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'buyNow' : IDL.Func([BuyRequest], [BuyResponse], []),
-    'cancelFavorite' : IDL.Func([TokenIndex__1], [IDL.Bool], []),
     'cancelList' : IDL.Func([TokenIndex__1], [ListResponse], []),
-    'clearAirDrop' : IDL.Func([], [IDL.Bool], []),
-    'clearDisCount' : IDL.Func([], [IDL.Bool], []),
-    'cliamAirdrop' : IDL.Func([], [AirDropResponse], []),
-    'deleteAirDrop' : IDL.Func([IDL.Principal], [IDL.Bool], []),
-    'getAirDropLeft' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Nat))],
-        ['query'],
-      ),
-    'getAirDropRemain' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
     'getAll' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(TokenIndex__1, IDL.Principal))],
@@ -185,18 +158,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getComponentsSize' : IDL.Func([], [IDL.Nat], ['query']),
     'getCycles' : IDL.Func([], [IDL.Nat], ['query']),
-    'getDisCountByUser' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
-    'getDisCountLeft' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Nat))],
-        ['query'],
-      ),
     'getListings' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(NFTStoreInfo, Listings))],
         ['query'],
       ),
-    'getMintPrice' : IDL.Func([], [IDL.Nat], ['query']),
     'getSoldListings' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(NFTStoreInfo, SoldListings))],
@@ -204,7 +170,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getStorageCanisterId' : IDL.Func([], [IDL.Opt(IDL.Principal)], ['query']),
     'getTokenById' : IDL.Func([IDL.Nat], [GetTokenResponse], ['query']),
-    'getWICPCanisterId' : IDL.Func([], [IDL.Principal], ['query']),
     'isApprovedForAll' : IDL.Func(
         [IDL.Principal, IDL.Principal],
         [IDL.Bool],
@@ -215,24 +180,18 @@ export const idlFactory = ({ IDL }) => {
     'mint' : IDL.Func([IDL.Nat], [MintResponse], []),
     'newStorageCanister' : IDL.Func([IDL.Principal], [IDL.Bool], []),
     'ownerOf' : IDL.Func([TokenIndex__1], [IDL.Opt(IDL.Principal)], ['query']),
-    'preMint' : IDL.Func([IDL.Vec(PreMint)], [IDL.Nat], []),
     'proAvailableMint' : IDL.Func([], [IDL.Bool], []),
     'setApprovalForAll' : IDL.Func([IDL.Principal, IDL.Bool], [IDL.Bool], []),
-    'setFavorite' : IDL.Func([TokenIndex__1], [IDL.Bool], []),
-    'setMintPrice' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'setNftCanister' : IDL.Func([IDL.Vec(IDL.Principal)], [IDL.Bool], []),
     'setOwner' : IDL.Func([IDL.Principal], [IDL.Bool], []),
     'setStorageCanisterId' : IDL.Func([IDL.Opt(IDL.Principal)], [IDL.Bool], []),
-    'setWICPCanisterId' : IDL.Func([IDL.Principal], [IDL.Bool], []),
     'transferFrom' : IDL.Func(
         [IDL.Principal, IDL.Principal, TokenIndex__1],
         [TransferResponse],
         [],
       ),
     'updateList' : IDL.Func([ListRequest], [ListResponse], []),
-    'uploadAirDropList' : IDL.Func([IDL.Vec(AirDropStruct)], [IDL.Bool], []),
     'uploadComponents' : IDL.Func([IDL.Vec(Component)], [IDL.Bool], []),
-    'uploadDisCountList' : IDL.Func([IDL.Vec(DisCountStruct)], [IDL.Bool], []),
     'uploadNftMetaData' : IDL.Func([IDL.Vec(NFTMetaData)], [IDL.Bool], []),
     'wallet_receive' : IDL.Func([], [IDL.Nat], []),
   });

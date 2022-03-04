@@ -29,11 +29,6 @@ type SoldListings =
    lastPrice: nat;
    time: Time;
  };
-type PreMint = 
- record {
-   index: nat;
-   user: principal;
- };
 type NFTStoreInfo = 
  record {
    canisterId: principal;
@@ -57,17 +52,7 @@ type NFT =
    batchTransferFrom: (principal, vec principal, vec TokenIndex__1) ->
     (TransferResponse);
    buyNow: (BuyRequest) -> (BuyResponse);
-   cancelFavorite: (TokenIndex__1) -> (bool);
    cancelList: (TokenIndex__1) -> (ListResponse);
-   clearAirDrop: () -> (bool);
-   clearDisCount: () -> (bool);
-   cliamAirdrop: () -> (AirDropResponse);
-   deleteAirDrop: (principal) -> (bool);
-   getAirDropLeft: () -> (vec record {
-                                principal;
-                                nat;
-                              }) query;
-   getAirDropRemain: (principal) -> (nat) query;
    getAll: () -> (vec record {
                         TokenIndex__1;
                         principal;
@@ -90,43 +75,30 @@ type NFT =
    getComponentById: (TokenIndex__1) -> (opt Component) query;
    getComponentsSize: () -> (nat) query;
    getCycles: () -> (nat) query;
-   getDisCountByUser: (principal) -> (nat) query;
-   getDisCountLeft: () -> (vec record {
-                                 principal;
-                                 nat;
-                               }) query;
    getListings: () -> (vec record {
                              NFTStoreInfo;
                              Listings;
                            }) query;
-   getMintPrice: () -> (nat) query;
    getSoldListings: () -> (vec record {
                                  NFTStoreInfo;
                                  SoldListings;
                                }) query;
    getStorageCanisterId: () -> (opt principal) query;
    getTokenById: (nat) -> (GetTokenResponse) query;
-   getWICPCanisterId: () -> (principal) query;
    isApprovedForAll: (principal, principal) -> (bool) query;
    isList: (TokenIndex__1) -> (opt Listings) query;
    list: (ListRequest) -> (ListResponse);
    mint: (nat) -> (MintResponse);
    newStorageCanister: (principal) -> (bool);
    ownerOf: (TokenIndex__1) -> (opt principal) query;
-   preMint: (vec PreMint) -> (nat);
    proAvailableMint: () -> (bool);
    setApprovalForAll: (principal, bool) -> (bool);
-   setFavorite: (TokenIndex__1) -> (bool);
-   setMintPrice: (nat) -> (bool);
    setNftCanister: (vec principal) -> (bool);
    setOwner: (principal) -> (bool);
    setStorageCanisterId: (opt principal) -> (bool);
-   setWICPCanisterId: (principal) -> (bool);
    transferFrom: (principal, principal, TokenIndex__1) -> (TransferResponse);
    updateList: (ListRequest) -> (ListResponse);
-   uploadAirDropList: (vec AirDropStruct) -> (bool);
    uploadComponents: (vec Component) -> (bool);
-   uploadDisCountList: (vec DisCountStruct) -> (bool);
    uploadNftMetaData: (vec NFTMetaData) -> (bool);
    wallet_receive: () -> (nat);
  };
@@ -177,11 +149,6 @@ type GetTokenResponse =
    err: variant {NotFoundIndex;};
    ok: TokenDetails;
  };
-type DisCountStruct = 
- record {
-   disCount: nat;
-   user: principal;
- };
 type ComponentAttribute = 
  record {
    attr_name: text;
@@ -217,18 +184,5 @@ type BuyRequest =
    feeTo: principal;
    marketFeeRatio: nat;
    tokenIndex: TokenIndex;
- };
-type AirDropStruct = 
- record {
-   remainTimes: nat;
-   user: principal;
- };
-type AirDropResponse = 
- variant {
-   err: variant {
-          AlreadyCliam;
-          NotInAirDropListOrAlreadyCliam;
-        };
-   ok: CanvasIdentity;
  };
 service : (principal, principal, principal, principal) -> NFT
